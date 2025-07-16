@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego: Departamentos y Capitales de Colombia</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .name-section {
+            margin-bottom: 30px;
+        }
+        
+        .name-section input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .name-section input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .question-section {
+            display: none;
+            margin-bottom: 30px;
+        }
+        
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .question-number {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+        }
+        
+        .timer {
+            background: #ff6b6b;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .question-text {
+            font-size: 1.4em;
+            color: #333;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+        
+        .options {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1em;
+        }
+        
+        .option:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+        
+        .option.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #218838;
+        }
+        
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .results-section {
+            display: none;
+        }
+        
+        .score {
+            font-size: 3em;
+            color: #28a745;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        
+        .message {
+            font-size: 1.3em;
+            color: #333;
+            margin: 20px 0;
+        }
+        
+        .details {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .detail-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 4px solid #667eea;
+            background: white;
+        }
+        
+        .correct {
+            border-left-color: #28a745;
+        }
+        
+        .incorrect {
+            border-left-color: #dc3545;
+        }
+        
+        .timeout {
+            border-left-color: #ffc107;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sección de nombre -->
+        <div id="nameSection" class="name-section">
+            <div class="header">
+                <h1>🇨🇴 Juego de Colombia</h1>
+                <p>Departamentos y Capitales</p>
+            </div>
+            
+            <input type="text" id="studentName" placeholder="Escribe tu nombre completo" maxlength="50">
+            <br><br>
+            <button class="btn" onclick="startGame()">🚀 Comenzar Juego</button>
+            
+            <div class="warning">
+                ⚠️ <strong>Importante:</strong> Solo tienes UNA oportunidad para jugar. 
+                Cada pregunta tiene 7 segundos. ¡Concéntrate!
+            </div>
+        </div>
+        
+        <!-- Sección de preguntas -->
+        <div id="questionSection" class="question-section">
+            <div class="question-header">
+                <div class="question-number" id="questionNumber">Pregunta 1/10</div>
+                <div class="timer" id="timer">7</div>
+            </div>
+            
+            <div class="question-text" id="questionText"></div>
+            
+            <div class="options" id="options"></div>
+            
+            <button class="btn" id="nextBtn" onclick="nextQuestion()" disabled>Siguiente</button>
+        </div>
+        
+        <!-- Sección de resultados -->
+        <div id="resultsSection" class="results-section">
+            <div class="header">
+                <h1>🎯 Resultados</h1>
+            </div>
+            
+            <div class="score" id="finalScore">0/5</div>
+            <div class="message" id="finalMessage"></div>
+            
+            <div class="details" id="detailsContainer"></div>
+            
+            <div class="warning">
+                ✅ Tus resultados han sido guardados automáticamente.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // IMPORTANTE: Reemplaza esta URL con tu URL de Google Apps Script
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwfHDvEOgc7dhzEL50XXoZdXonY9CBHhVEUq2lVbjVRcCNXk6RsMaxyQTzLL54Cnnmp/exec';
+        
+        const questions = [
+            {
+                question: "¿Cuál es la capital de Antioquia?",
+                options: ["Medellín", "Manizales", "Pereira", "Armenia"],
+                correct: 0
+            },
+            {
+                question: "¿Cuál es la capital de Valle del Cauca?",
+                options: ["Buenaventura", "Palmira", "Cali", "Cartago"],
+                correct: 2
+            },
+            {
+                question: "¿Cuál es la capital de Atlántico?",
+                options: ["Cartagena", "Barranquilla", "Santa Marta", "Sincelejo"],
+                correct: 1
+            },
+            {
+                question: "¿Cuál es la capital de Santander?",
+                options: ["Bucaramanga", "Cúcuta", "Barrancabermeja", "Socorro"],
+                correct: 0
+            },
+            {
+                question: "¿Cuál es la capital de Bolívar?",
+                options: ["Barranquilla", "Santa Marta", "Cartagena", "Montería"],
+                correct: 2
+            },
+            {
+                question: "¿Cuál es la capital de Cundinamarca?",
+                options: ["Bogotá", "Zipaquirá", "Facatativá", "Chía"],
+                correct: 0
+            },
+            {
+                question: "¿Cuál es la capital de Nariño?",
+                options: ["Ipiales", "Tumaco", "Pasto", "La Cruz"],
+                correct: 2
+            },
+            {
+                question: "¿Cuál es la capital de Huila?",
+                options: ["Pitalito", "Garzón", "Neiva", "La Plata"],
+                correct: 2
+            },
+            {
+                question: "¿Cuál es la capital de Córdoba?",
+                options: ["Sincelejo", "Montería", "Lorica", "Cereté"],
+                correct: 1
+            },
+            {
+                question: "¿Cuál es la capital de Tolima?",
+                options: ["Girardot", "Espinal", "Ibagué", "Honda"],
+                correct: 2
+            }
+        ];
+        
+        let currentQuestion = 0;
+        let score = 0;
+        let timeLeft = 7;
+        let timer;
+        let studentName = '';
+        let answers = [];
+        let gameStarted = false;
+        
+        // Verificar si ya jugó
+        if (localStorage.getItem('colombiaGamePlayed')) {
+            document.getElementById('nameSection').innerHTML = `
+                <div class="header">
+                    <h1>🚫 Ya jugaste</h1>
+                    <p>Solo se permite un intento por estudiante</p>
+                </div>
+                <div class="warning">
+                    Ya completaste este juego anteriormente. 
+                    Solo se permite una oportunidad por estudiante.
+                </div>
+            `;
+        }
+        
+        function startGame() {
+            const nameInput = document.getElementById('studentName');
+            studentName = nameInput.value.trim();
+            
+            if (!studentName) {
+                alert('Por favor escribe tu nombre completo');
+                return;
+            }
+            
+            if (studentName.length < 3) {
+                alert('Por favor escribe tu nombre completo (mínimo 3 caracteres)');
+                return;
+            }
+            
+            // Marcar que ya jugó
+            localStorage.setItem('colombiaGamePlayed', 'true');
+            localStorage.setItem('colombiaPlayerName', studentName);
+            
+            gameStarted = true;
+            document.getElementById('nameSection').style.display = 'none';
+            document.getElementById('questionSection').style.display = 'block';
+            
+            showQuestion();
+        }
+        
+        function showQuestion() {
+            if (currentQuestion >= questions.length) {
+                showResults();
+                return;
+            }
+            
+            const q = questions[currentQuestion];
+            
+            document.getElementById('questionNumber').textContent = `Pregunta ${currentQuestion + 1}/10`;
+            document.getElementById('questionText').textContent = q.question;
+            
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            q.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.textContent = option;
+                optionDiv.onclick = () => selectOption(index);
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            document.getElementById('nextBtn').disabled = true;
+            startTimer();
+        }
+        
+        function selectOption(index) {
+            // Limpiar selecciones anteriores
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Seleccionar nueva opción
+            document.querySelectorAll('.option')[index].classList.add('selected');
+            
+            // Guardar respuesta
+            const isCorrect = index === questions[currentQuestion].correct;
+            answers.push({
+                question: currentQuestion + 1,
+                selected: index,
+                isCorrect: isCorrect,
+                timeUsed: 7 - timeLeft
+            });
+            
+            if (isCorrect) {
+                score += 0.5;
+            }
+            
+            document.getElementById('nextBtn').disabled = false;
+            clearInterval(timer);
+        }
+        
+        function startTimer() {
+            timeLeft = 7;
+            document.getElementById('timer').textContent = timeLeft;
+            
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    // Tiempo agotado
+                    answers.push({
+                        question: currentQuestion + 1,
+                        selected: -1,
+                        isCorrect: false,
+                        timeUsed: 7
+                    });
+                    
+                    // Mostrar que se agotó el tiempo
+                    document.getElementById('timer').textContent = '¡Tiempo!';
+                    document.getElementById('timer').style.background = '#dc3545';
+                    
+                    setTimeout(() => {
+                        document.getElementById('timer').style.background = '#ff6b6b';
+                        nextQuestion();
+                    }, 1000);
+                }
+            }, 1000);
+        }
+        
+        function nextQuestion() {
+            clearInterval(timer);
+            currentQuestion++;
+            showQuestion();
+        }
+        
+        function showResults() {
+            document.getElementById('questionSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'block';
+            
+            document.getElementById('finalScore').textContent = `${score}/5`;
+            
+            let message = '';
+            if (score >= 4.5) {
+                message = '🏆 ¡Excelente! Conoces muy bien Colombia';
+            } else if (score >= 3.5) {
+                message = '👏 ¡Muy bien! Buen conocimiento de Colombia';
+            } else if (score >= 2.5) {
+                message = '👍 Bien, pero puedes mejorar';
+            } else {
+                message = '📚 Necesitas estudiar más sobre Colombia';
+            }
+            
+            document.getElementById('finalMessage').textContent = message;
+            
+            // Mostrar detalles
+            const detailsContainer = document.getElementById('detailsContainer');
+            detailsContainer.innerHTML = '<h3>Detalles de tus respuestas:</h3>';
+            
+            answers.forEach((answer, index) => {
+                const q = questions[index];
+                const detailDiv = document.createElement('div');
+                detailDiv.className = 'detail-item';
+                
+                if (answer.selected === -1) {
+                    detailDiv.classList.add('timeout');
+                    detailDiv.innerHTML = `
+                        <strong>Pregunta ${answer.question}:</strong> ${q.question}<br>
+                        <span style="color: #856404;">⏰ Tiempo agotado</span><br>
+                        <span style="color: #28a745;">✓ Respuesta correcta: ${q.options[q.correct]}</span>
+                    `;
+                } else if (answer.isCorrect) {
+                    detailDiv.classList.add('correct');
+                    detailDiv.innerHTML = `
+                        <strong>Pregunta ${answer.question}:</strong> ${q.question}<br>
+                        <span style="color: #28a745;">✓ Correcto: ${q.options[answer.selected]}</span>
+                    `;
+                } else {
+                    detailDiv.classList.add('incorrect');
+                    detailDiv.innerHTML = `
+                        <strong>Pregunta ${answer.question}:</strong> ${q.question}<br>
+                        <span style="color: #dc3545;">✗ Tu respuesta: ${q.options[answer.selected]}</span><br>
+                        <span style="color: #28a745;">✓ Respuesta correcta: ${q.options[q.correct]}</span>
+                    `;
+                }
+                
+                detailsContainer.appendChild(detailDiv);
+            });
+            
+            // Enviar resultados
+            sendResults();
+        }
+        
+        async function sendResults() {
+            if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL === 'TU_URL_AQUI') {
+                console.log('URL de Google Script no configurada');
+                return;
+            }
+            
+            const now = new Date();
+            const resultData = {
+                nombre: studentName,
+                puntuacion: score.toString(),
+                fecha: now.toLocaleDateString(),
+                hora: now.toLocaleTimeString(),
+                respuestas: answers
+            };
+            
+            try {
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(resultData)
+                });
+                
+                console.log('Resultados enviados exitosamente');
+            } catch (error) {
+                console.error('Error al enviar resultados:', error);
+            }
+        }
+    </script>
+</body>
+</html>'''
+
+with open('juego-colombia-final.html', 'w', encoding='utf-8') as f:
+    f.write(html_final)
+
+print("✅ ¡JUEGO FINAL CREADO!")
+print("\n🎯 PASOS FINALES:")
+print("\n1. Descarga el archivo 'juego-colombia-final.html'")
+print("2. Ábrelo con el Bloc de notas")
+print("3. Busca la línea: const GOOGLE_SCRIPT_URL = 'TU_URL_AQUI';")
+print("4. Reemplaza 'TU_URL_AQUI' con tu URL de Google Apps Script")
+print("5. Guarda el archivo")
+print("6. Súbelo a tu servidor web o úsalo localmente")
+print("\n🎮 ¡EL JUEGO ESTARÁ LISTO!")diar más sobre los departamentos de Colombia 📖";
+            }
+            
+            resultMessage.textContent = message;
+            
+            // Guardar resultados en Google Sheets
+            saveToGoogleSheets();
+        }
+
+        async function saveToGoogleSheets() {
+            const saveStatus = document.getElementById('saveStatus');
+            
+            // Verificar si la URL está configurada
+            if (GOOGLE_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbwfHDvEOgc7dhzEL50XXoZdXonY9CBHhVEUq2lVbjVRcCNXk6RsMaxyQTzLL54Cnnmp/exec') {
+                saveStatus.innerHTML = '<div class="error-message">⚠️ URL de Google Script no configurada. Contacta al administrador.</div>';
+                return;
+            }
+            
+            saveStatus.innerHTML = '<div class="saving-message">💾 Guardando resultados...</div>';
+            
+            const now = new Date();
+            const resultData = {
+                nombre: studentName,
+                puntuacion: score.toFixed(1),
+                fecha: now.toLocaleDateString('es-CO'),
+                hora: now.toLocaleTimeString('es-CO'),
+                respuestas: answers
+            };
+            
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(resultData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    saveStatus.innerHTML = '<div class="success-message">✅ Resultados guardados correctamente en la hoja de cálculo</div>';
+                } else {
+                    throw new Error(result.message || 'Error desconocido');
+                }
+                
+            } catch (error) {
+                console.error('Error al guardar:', error);
+                saveStatus.innerHTML = '<div class="error-message">❌ Error al guardar los resultados. Contacta al profesor.</div>';
+                
+                // Guardar localmente como respaldo
+                localStorage.setItem('backupResults', JSON.stringify(resultData));
+            }
+        }
+
+        // Para testing - descomenta la siguiente línea solo durante desarrollo
+        // localStorage.clear();
+    </script>
+</body>
+</html>
